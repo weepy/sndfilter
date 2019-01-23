@@ -224,7 +224,11 @@ void sf_compressor_process(sf_compressor_state_st *state, int size, sf_sample_st
 	sf_sample_st *delaybuf     = state->delaybuf;
 
 	int samplesperchunk = SF_COMPRESSOR_SPU;
-	int chunks = size / samplesperchunk;
+    int chunks = size / samplesperchunk;    
+    if(chunks * samplesperchunk < size) {
+		chunks += 1;
+	}
+	
 	float ang90 = (float)M_PI * 0.5f;
 	float ang90inv = 2.0f / (float)M_PI;
 	int samplepos = 0;
@@ -257,8 +261,10 @@ void sf_compressor_process(sf_compressor_state_st *state, int size, sf_sample_st
 			enveloperate = 1.0f - powf(0.25f / attenuate, attacksamplesinv);
 		}
 
+		int chunksize = samplesperchunk < size - samplepos ? samplesperchunk : size - samplepos;
+		
 		// process the chunk
-		for (int chi = 0; chi < samplesperchunk; chi++, samplepos++,
+		for (int chi = 0; chi < chunksize; chi++, samplepos++,
 			delayreadpos = (delayreadpos + 1) % delaybufsize,
 			delaywritepos = (delaywritepos + 1) % delaybufsize){
 
